@@ -1,113 +1,200 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+import { Button } from "@nextui-org/button";
+import {
+  Input,
+  Image,
+  Card,
+  CardBody,
+  CardFooter,
+  useDisclosure,
+  Select,
+  SelectItem,
+  Textarea,
+  Divider,
+} from "@nextui-org/react";
+import {
+  ImageOptions,
+  ImageOrientationDefinition,
+  ImageOrientation,
+  ImageProposal,
+  ImageSize,
+  ImageType,
+  ImageTypeDefinition,
+  ORIENTATIONS,
+  RequestValidator,
+  TYPES,
+} from "@model/index";
+import ImageModal from "@component/image-modal";
+
+export default function Page() {
+  const [prompt, setPrompt] = useState("");
+  const [imageType, setImageType] = useState<ImageType>('postcard');
+  const [orientation, setOrientation] = useState<ImageOrientation>('portrait');
+  const [numberOfExamples, setNumberOfExamples] = useState<number>(4);
+  const [images, setImages] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string>();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const handleGenerateImages = async () => {
+    try {
+      const options = generateSize(imageType, orientation);
+      const body = RequestValidator.parse({
+        prompt,
+        width: options.size.width,
+        height: options.size.height,
+        samples: numberOfExamples,
+      });
+      console.log(body);
+      const response = await fetch("http://localhost:8080/generate-image", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data: ImageProposal = await response.json();
+      setImages(data.images);
+    } catch (error) {
+      console.error(error);
+      setImages([]);
+    }
+  };
+
+  const generateSize = (
+    type?: ImageType,
+    orientation?: ImageOrientation
+  ): ImageOptions => {
+    const selectedType = TYPES.find((t) => t.value === type);
+
+    if (!selectedType) {
+      return {
+        type: 'postcard',
+        size: { width: 591, height: 399 },
+        orientation: 'landscape',
+      };
+    }
+
+    const { width, height } = selectedType.size;
+    return {
+      type: selectedType.value,
+      size: orientation === 'portrait' ? selectedType.size : {width: height, height: width},
+      orientation: orientation ?? 'portrait'
+    };
+  }
+
+  const selectImage = (index: number) => {
+    console.log(`selected image #${index}`);
+    setSelected(images[index]);
+    onOpen();
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main>
+      <section className="flex flex-col items-center justify-center">
+        <div className="flex flex-col w-full gap-4">
+          <div className="flex w-full gap-2 justify-between items-center">
+            <div className="flex-grow p-x-4 my-4">
+              <Textarea
+                placeholder="Enter your prompt here"
+                width="100%"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+            </div>
+            <div className="flex my-4">
+              <Button color="primary" onClick={handleGenerateImages}>
+                Generate Images
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Select
+              label="Tipo de imagen"
+              placeholder="Selecciona uno"
+              items={TYPES}
+              defaultSelectedKeys={["postcard"]}
+              onChange={(e) => setImageType(e.target.value as ImageType)}
+            >
+              {(type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>}
+            </Select>
+            <Select
+              label="Orientación"
+              placeholder="Selecciona uno"
+              items={ORIENTATIONS}
+              defaultSelectedKeys={["portrait"]}
+              onChange={(e) => setOrientation(e.target.value as ImageOrientation)}
+            >
+              {(orientation) => (
+                <SelectItem key={orientation.value}>
+                  {orientation.label}
+                </SelectItem>
+              )}
+            </Select>
+            <Select
+              label="Número de ejemplos"
+              placeholder="Selecciona uno"
+              className="max-w-xs"
+              defaultSelectedKeys={["4"]}
+              onChange={(e) => setNumberOfExamples(parseInt(e.target.value))}
+            >
+              <SelectItem key={4} textValue={`4`}>
+                4
+              </SelectItem>
+              <SelectItem key={8} textValue={`8`}>
+                8
+              </SelectItem>
+              <SelectItem key={12} textValue={`12`}>
+                12
+              </SelectItem>
+              <SelectItem key={16} textValue={`16`}>
+                16
+              </SelectItem>
+              <SelectItem key={20} textValue={`20`}>
+                20
+              </SelectItem>
+            </Select>
+          </div>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        <Divider className="mt-5"/>
+        <div className="border-dotted border-2 mt-5 grid grid-cols-2 gap-4">
+          {images.map((img, index) => (
+            <div className="w-full aspect-auto" key={"img-" + index}>
+              <Card
+                shadow="sm"
+                key={"card-" + index}
+                isPressable
+                onPress={() => selectImage(index)}
+              >
+                <CardBody className="overflow-visible p-0">
+                  <Image
+                    shadow="sm"
+                    radius="lg"
+                    width="100%"
+                    alt={`Generated image ${index + 1}`}
+                    className="w-full object-cover h-[140px]"
+                    src={`data:image/jpeg;base64,${img}`}
+                  />
+                </CardBody>
+                <CardFooter className="text-small justify-between">
+                  <b>{`Generated image`}</b>
+                  <p className="text-default-500">{index + 1}</p>
+                </CardFooter>
+              </Card>
+            </div>
+          ))}
+        </div>
+      </section>
+      <ImageModal
+        imageSrc={selected}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      />
     </main>
   );
 }
