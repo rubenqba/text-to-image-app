@@ -43,7 +43,7 @@ export default function Page() {
         samples: numberOfExamples,
       });
       console.log(body);
-      const response = await fetch("http://localhost:8080/generate-image", {
+      const response = await fetch("/api/v1/generate-image", {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
