@@ -1,0 +1,53 @@
+# create package tag
+name: Update Version and Tag
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  version-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+          cache: pnpm
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Create release tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          pnpm version minor -m 'create new version v%s' --tag-version-prefix='v'
+
+      - name: Get new version
+        id: get_version
+        run: |
+          new_version=$(node -p "require('./package.json').version")
+          echo "version=$new_version" >> $GITHUB_OUTPUT
+
+      # - name: Push release tag
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git commit -a -m "Create new version v${{ steps.get_version.outputs.version }}"
+      #     git tag -a v${{ steps.get_version.outputs.version }} -m 'Create release version v${{ steps.get_version.outputs.version }}'
+      #     # git push origin v${{ steps.get_version.outputs.version }}
+
+      - name: Set next development version
+        run: |
+          pnpm version prerelease --no-git-tag-version
+          git commit -a -m "[skip ci] Create next snapshot version"
+          # git push origin
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true

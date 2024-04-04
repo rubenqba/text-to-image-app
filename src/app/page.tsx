@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@nextui-org/button";
 import {
-  Input,
+  Button,
   Image,
   Card,
   CardBody,
@@ -16,12 +15,9 @@ import {
 } from "@nextui-org/react";
 import {
   ImageOptions,
-  ImageOrientationDefinition,
   ImageOrientation,
   ImageProposal,
-  ImageSize,
   ImageType,
-  ImageTypeDefinition,
   ORIENTATIONS,
   RequestValidator,
   TYPES,

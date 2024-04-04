@@ -5,8 +5,8 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/modal";
-import { Button } from "@nextui-org/button";
+  Button
+} from "@nextui-org/react";
 
 type ImageModalProps = {
   isOpen: boolean;
