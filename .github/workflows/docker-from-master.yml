@@ -50,8 +50,19 @@ jobs:
           pnpm build
           ls -lFh .next/
 
-      - name: Build docker image
-        run: |
-          ls -lFh .next/
-          docker build -t "${{ env.registry }}/${{ env.image_name }}:manual" .
-          docker push "${{ env.registry }}/${{ env.image_name }}:manual"
+      # - name: Build docker image
+      #   run: |
+      #     ls -lFh .next/
+      #     docker build -t "${{ env.registry }}/${{ env.image_name }}:manual" .
+      #     docker push "${{ env.registry }}/${{ env.image_name }}:manual"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5.3.0
+        with:
+          platforms: linux/amd64, linux/arm64
+          context: .
+          push: false
+          build-args: |
+            ARG1_NAME=arg1_value
+            ARG2_NAME=arg2_value
+          tags: manual
