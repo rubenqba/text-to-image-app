@@ -15,7 +15,7 @@ RUN chown nextjs:nodejs .next
 
 COPY public ./public
 COPY .next/standalone ./
-COPY .next/static ./.next/static
+# COPY .next/static ./.next/static
 
 # Set the correct permission for prerender cache
 RUN chown nextjs:nodejs .next

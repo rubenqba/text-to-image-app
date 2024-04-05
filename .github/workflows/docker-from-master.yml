@@ -9,10 +9,16 @@ on:
         required: true
         default: 'master'  # Puedes poner aquí la rama que quieras por defecto
 
+env:
+  registry: ghcr.io
+  image_name: ${{ github.repository }}
+
 jobs:
   build-docker:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,18 +35,34 @@ jobs:
           version: latest
           run_install: true
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.2.0
+
       - name: Build code
         run: |
           pnpm build
           ls -lFh .next/
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.2.0
+      # - name: Build docker image
+      #   run: |
+      #     ls -lFh .next/
+      #     docker build -t "${{ env.registry }}/${{ env.image_name }}:manual" .
+      #     docker push "${{ env.registry }}/${{ env.image_name }}:manual"
 
-      - name: Build docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5.3.0
         with:
+          platforms: linux/amd64, linux/arm64
+          context: .
           push: false
           build-args: |
             ARG1_NAME=arg1_value
             ARG2_NAME=arg2_value
+          tags: manual
