@@ -44,4 +44,4 @@ jobs:
       - name: Build docker image
         run: |
           ls -lFh .next/
-          docker build -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" .
+          docker build -t "${{ env.registry }}/${{ env.image_name }}" .
