@@ -53,5 +53,5 @@ jobs:
       - name: Build docker image
         run: |
           ls -lFh .next/
-          docker build -t "${{ env.registry }}/${{ env.image_name }}" .
+          docker build -t "${{ env.registry }}/${{ env.image_name }}:manual" .
           docker push "${{ env.registry }}/${{ env.image_name }}:manual"
