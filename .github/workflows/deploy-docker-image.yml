@@ -46,6 +46,7 @@ jobs:
       - name: Build code
         run: |
           pnpm build
+          ls -lFh .next/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.2.0
