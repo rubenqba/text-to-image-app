@@ -58,12 +58,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        run: |
-          docker build -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:manual" .
-          docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:manual"
         uses: docker/build-push-action@v5.3.0
         with:
-          # platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64, linux/arm64
+          context: .
           push: true
           build-args: |
             ARG1_NAME=arg1_value
