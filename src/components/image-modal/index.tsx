@@ -5,7 +5,8 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button
+  Button,
+  Image,
 } from "@nextui-org/react";
 
 type ImageModalProps = {
@@ -17,17 +18,23 @@ type ImageModalProps = {
 export default function ImageModal(props: Readonly<ImageModalProps>) {
   const { imageSrc, isOpen, onOpenChange } = props;
 
+  console.log("imageSrc", imageSrc);
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <ModalContent>
+      <ModalContent className="h-5/6 min-w-fit whatever">
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              Modal Title
-            </ModalHeader>
-            <ModalBody>
+            <ModalHeader>Image preview</ModalHeader>
+            <ModalBody className="flex justify-center items-center overflow-y-clip p-4">
               {imageSrc && (
-                <img src={`data:image/jpeg;base64,${imageSrc}`} alt="Full Size" style={{ width: "100%" }} />
+                <div className="h-full aspect-auto">
+                  <Image
+                    removeWrapper
+                    src={`data:image/png;base64,${imageSrc}`}
+                    alt="Full Size"
+                    className="z-0 w-full h-full object-cover"
+                  />
+                </div>
               )}
             </ModalBody>
             <ModalFooter>

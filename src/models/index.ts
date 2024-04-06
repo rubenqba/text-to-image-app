@@ -11,7 +11,7 @@ export const RequestValidator = z.object({
   prompt: z.string(),
   width: z.number().min(320).max(1536).default(512),
   height: z.number().min(320).max(1536).default(512),
-  samples: z.number().min(1).max(10).default(4),
+  samples: z.number().min(1).max(20).default(4),
 });
 
 export type ImageProposal = {
