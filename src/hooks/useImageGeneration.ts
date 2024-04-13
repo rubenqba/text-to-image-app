@@ -1,55 +1,37 @@
-import { ImageType, ImageOrientation, ImageOptions, TYPES, RequestValidator, ImageProposal } from "@model/index";
+import {
+  ImageType,
+  ImageOrientation,
+  DesignRequestValidator,
+  DesignResponse,
+} from "@model/test-to-image";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 export const useImageGeneration = () => {
   const [prompt, setPrompt] = useState("");
-  const [imageType, setImageType] = useState<ImageType>("postcard");
-  const [orientation, setOrientation] = useState<ImageOrientation>("portrait");
+  const [imageType, setImageType] = useState<ImageType>("POSTCARD");
+  const [orientation, setOrientation] = useState<ImageOrientation>("PORTRAIT");
   const [numberOfExamples, setNumberOfExamples] = useState<number>(4);
+  const [style, setStyle] = useState<string>();
   const [images, setImages] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
-
-  // functions
-  const generateSize = (
-    type?: ImageType,
-    orientation?: ImageOrientation
-  ): ImageOptions => {
-    const selectedType = TYPES.find((t) => t.value === type);
-
-    if (!selectedType) {
-      return {
-        type: "postcard",
-        size: { width: 591, height: 399 },
-        orientation: "landscape",
-      };
-    }
-
-    const { width, height } = selectedType.size;
-    return {
-      type: selectedType.value,
-      size:
-        orientation === "portrait"
-          ? selectedType.size
-          : { width: height, height: width },
-      orientation: orientation ?? "portrait",
-    };
-  };
 
   const generateImages = async () => {
     setImages([]);
     setRunning(true);
 
     try {
-      const options = generateSize(imageType, orientation);
-      const body = RequestValidator.parse({
+      const body = DesignRequestValidator.parse({
         prompt,
-        width: options.size.width,
-        height: options.size.height,
-        samples: numberOfExamples,
+        options: {
+          batchSize: numberOfExamples,
+          style,
+          purpose: imageType,
+          orientation,
+        },
       });
       console.log(body);
-      const response = await fetch("/api/v1/generate-image", {
+      const response = await fetch("/api/tti/generate", {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
@@ -62,7 +44,7 @@ export const useImageGeneration = () => {
 
       toast.success(`Images generated successfully`);
 
-      const data: ImageProposal = await response.json();
+      const data: DesignResponse = await response.json();
       setImages(data.images);
     } catch (error) {
       console.error(error);
@@ -71,7 +53,7 @@ export const useImageGeneration = () => {
     } finally {
       setRunning(false);
     }
-  }
+  };
 
   return {
     prompt,
@@ -82,9 +64,11 @@ export const useImageGeneration = () => {
     setOrientation,
     numberOfExamples,
     setNumberOfExamples,
+    style,
+    setStyle,
     images,
     running,
     setImages,
     generateImages,
   };
-}
+};

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./provider";
 import Header from "@component/header";
 import { Toaster } from "react-hot-toast";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,14 +19,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
-        <Providers>
-          <Header />
-          {children}
-        </Providers>
-        <Toaster />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className="min-h-screen">
+          <Providers>
+            <Header />
+            <div className="flex justify-center items-center p-24">{children}</div>
+          </Providers>
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
